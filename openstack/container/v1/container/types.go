@@ -1,5 +1,18 @@
 package container
 
+type Address struct {
+	PreserveOnDelete bool    `json:"preserve_on_delete"`
+	Addr             string  `json:"addr"`
+	Port             string  `json:"port"`
+	Version          float64 `json:"version"`
+	SubnetID         string  `json:"subnet_id"`
+}
+
+type Link struct {
+	Href string `json:"href"`
+	Rel  string `json:"rel"`
+}
+
 type Container struct {
 	// The Container IP addresses
 	Addresses map[string][]Address `json:"addresses"`

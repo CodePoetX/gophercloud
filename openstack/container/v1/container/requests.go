@@ -70,6 +70,7 @@ func (opts CreateOpts) ToContainerCreateMap() (map[string]interface{}, error) {
 	if opts.RestartPolicy.Name == "" {
 		opts.RestartPolicy.Name = "no"
 	}
+
 	b["result"] = opts
 
 	return b, nil
@@ -88,7 +89,7 @@ func Create(c *gophercloud.ServiceClient, opts CreateOptsBuilder) (r CreateResul
 		r.Err = err
 		return
 	}
-	//fmt.Printf("%v\n",opts)
+	//fmt.Printf("%v\n",b["result"])
 	_, r.Err = c.Post(createURL(c), b["result"], &r.Body, nil)
 	if r.Err != nil {
 		err = fmt.Errorf("create container is error : %s", r.Err.Error())
