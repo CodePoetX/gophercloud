@@ -15,7 +15,12 @@ type ListOptsBuilder interface {
 // ToContainerListQuery formats a ListOpts into a query string.
 func (opts ListOpts) ToContainerListQuery() (string, error) {
 	q, err := gophercloud.BuildQueryString(opts)
-	return q.String(), err
+	if q != nil {
+		return q.String(), err
+	} else {
+		return "", err
+	}
+
 }
 
 // List returns a Pager which allows you to iterate over a collection of
@@ -35,22 +40,31 @@ func List(c *gophercloud.ServiceClient, opts ListOptsBuilder) pagination.Pager {
 	})
 }
 
-//func Mylist(c *gophercloud.ServiceClient, opts ListOptsBuilder) (r ListResult, err error) {
-//	url := listURL(c)
-//	if opts != nil {
-//		query, err := opts.ToContainerListQuery()
-//		if err != nil {
-//			return r, err
-//		}
-//		url += query
-//	}
-//	_, r.Err = c.Get(url, &r.Body, nil)
-//	return
-//}
+// operate a container, Operation method includes [start,stop,pause,unpause,rebuild,reboot,rename,put_archive,
+//add_securtiy_group,commit,network_detach]
+// 	Request was accepted for processing, but the processing has not been completed.
+// 	A ‘location’ header is included in the response which contains a link to check the progress of the request.
+func Operatecontainer(c *gophercloud.ServiceClient, id, operation string) (r OperateResult) {
+	url := OperatingURL(c, id, operation)
+	_, r.Err = c.Post(url, "", &r.Body, nil)
+	return
+}
 
 // Get retrieves a specific container based on its unique ID.
 func Get(c *gophercloud.ServiceClient, id string) (r GetResult) {
 	_, r.Err = c.Get(getURL(c, id), &r.Body, nil)
+	if r.Err == nil {
+		containerinfo, extracterr := r.Extract()
+		if extracterr == nil {
+			if containerinfo.Status == "Created" {
+				startResult := Operatecontainer(c, containerinfo.UUID, "start")
+				if startResult.Err != nil {
+					r.Err = startResult.Err
+					return
+				}
+			}
+		}
+	}
 	return r
 }
 
